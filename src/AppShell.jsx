@@ -19,10 +19,15 @@ import Premium from './pages/Premium';
 import AppLayout from './components/layout/AppLayout';
 import { WalkingProvider } from './lib/WalkingContext';
 import { PremiumProvider } from './lib/PremiumContext';
+import BiometricAuth from './components/BiometricAuth';
 
 export default function AppShell() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const [isBiometricAuthenticated, setIsBiometricAuthenticated] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(() => {
+    return localStorage.getItem('biometric_enabled') === 'true';
+  });
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -47,6 +52,11 @@ export default function AppShell() {
         <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
     );
+  }
+
+  // Check Biometric Authentication
+  if (isBiometricEnabled && !isBiometricAuthenticated) {
+    return <BiometricAuth onAuthenticated={() => setIsBiometricAuthenticated(true)} />;
   }
 
   // Show onboarding if profile doesn't exist or not completed

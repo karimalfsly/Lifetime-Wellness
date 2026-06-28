@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Link } from 'react-router-dom';
-import { Camera, History, Trophy, Watch, Globe, LogOut, Pencil, Save, X, Star, Zap, MessageCircle, ImagePlus, Loader2, Trash2, AlertTriangle, Crown } from 'lucide-react';
+import { Camera, History, Trophy, Watch, Globe, LogOut, Pencil, Save, X, Star, Zap, MessageCircle, ImagePlus, Loader2, Trash2, AlertTriangle, Crown, Fingerprint } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { usePremium } from '@/lib/PremiumContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,6 +15,14 @@ export default function Profile({ profile, user }) {
   const { t, lang, setLang } = useLanguage();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(() => {
+    return localStorage.getItem('biometric_enabled') === 'true';
+  });
+
+  const toggleBiometric = (enabled) => {
+    setBiometricEnabled(enabled);
+    localStorage.setItem('biometric_enabled', enabled ? 'true' : 'false');
+  };
   const [editData, setEditData] = useState({});
   const [uploading, setUploading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -219,6 +228,19 @@ export default function Profile({ profile, user }) {
               <Zap className="w-4 h-4 text-muted-foreground ml-auto" />
             </Link>
           ))}
+        </motion.div>
+
+        {/* Biometric Security */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
+          className="bg-card rounded-2xl p-4 border border-border flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Fingerprint className="w-5 h-5 text-primary" />
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{lang === 'ar' ? 'بصمة الوجه / الإصبع' : 'Face ID / Fingerprint'}</span>
+              <span className="text-[10px] text-muted-foreground">{lang === 'ar' ? 'تفعيل القفل الحيوي عند فتح التطبيق' : 'Enable biometric lock on app open'}</span>
+            </div>
+          </div>
+          <Switch checked={biometricEnabled} onCheckedChange={toggleBiometric} />
         </motion.div>
 
         {/* Language */}
