@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, Footprints, Zap, Trophy, Heart } from 'lucide-react';
+import { X, Footprints, Zap, Trophy, Heart } from 'lucide-react';
 
 function getSmartNotification(todayLog, profile, lang) {
   const steps = todayLog?.steps || 0;

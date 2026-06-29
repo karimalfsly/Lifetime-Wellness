@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '../../api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext';
 import { Bell, X, Plus, Send, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ADMIN_EMAIL = 'njdj9985@gmail.com';
+const ADMIN_EMAIL = 'karimalfasly@gmail.com';
 
 export default function NotificationBell({ user }) {
   const { lang } = useLanguage();

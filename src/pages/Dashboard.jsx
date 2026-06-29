@@ -1,31 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '../api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Footprints, Heart, Flame, Droplets, Moon, Clock, TrendingUp, Zap, Brain, Target, ChevronRight, Plus, Minus, Bot, RefreshCw, Volume2, VolumeX, ArrowDown, WifiOff } from 'lucide-react';
-import { offlineSave } from '@/lib/useOfflineSync';
-import { useOnlineStatus } from '@/lib/useOfflineSync';
-import { cacheData, getCachedData } from '@/lib/offlineStorage';
-import usePullToRefresh from '@/hooks/usePullToRefresh';
-import { useWalking } from '@/lib/WalkingContext';
-import TrialBanner from '@/components/premium/TrialBanner';
-import PremiumGate from '@/components/premium/PremiumGate';
-import StepsRing from '@/components/dashboard/StepsRing';
-import WeeklyChart from '@/components/dashboard/WeeklyChart';
-import MoodSelector from '@/components/mood/MoodSelector';
-import HealthPredictionCard from '@/components/dashboard/HealthPredictionCard';
-import LevelBadge, { getLevelInfo } from '@/components/dashboard/LevelBadge';
-import MicroGoals from '@/components/dashboard/MicroGoals';
-import SurpriseCard from '@/components/dashboard/SurpriseCard';
-import CommunityWidget from '@/components/dashboard/CommunityWidget';
-import StoryProgress from '@/components/dashboard/StoryProgress';
-import SmartNotificationBar from '@/components/dashboard/SmartNotificationBar';
-import DigitalTwin from '@/components/twin/DigitalTwin';
-import WalkingAnalysis from '@/components/dashboard/WalkingAnalysis';
-import GoogleFitSync from '@/components/fitness/GoogleFitSync';
-import UserManager from '@/components/admin/UserManager';
+import { useLanguage } from '../lib/LanguageContext';
+import { Footprints, Heart, Flame, Droplets, Moon, Clock, ChevronRight, Plus, Minus, Bot, RefreshCw, Volume2, VolumeX } from 'lucide-react';
+import { offlineSave } from '../lib/useOfflineSync';
+import { useOnlineStatus } from '../lib/useOfflineSync';
+import { cacheData, getCachedData } from '../lib/offlineStorage';
+import usePullToRefresh from '../hooks/usePullToRefresh';
+import { useWalking } from '../lib/WalkingContext';
+import TrialBanner from '../components/premium/TrialBanner';
+import PremiumGate from '../components/premium/PremiumGate';
+import StepsRing from '../components/dashboard/StepsRing';
+import WeeklyChart from '../components/dashboard/WeeklyChart';
+import MoodSelector from '../components/mood/MoodSelector';
+import HealthPredictionCard from '../components/dashboard/HealthPredictionCard';
+import LevelBadge, { getLevelInfo } from '../components/dashboard/LevelBadge';
+import MicroGoals from '../components/dashboard/MicroGoals';
+import SurpriseCard from '../components/dashboard/SurpriseCard';
+import CommunityWidget from '../components/dashboard/CommunityWidget';
+import StoryProgress from '../components/dashboard/StoryProgress';
+import SmartNotificationBar from '../components/dashboard/SmartNotificationBar';
+import DigitalTwin from '../components/twin/DigitalTwin'; // تم التأكد من صحة المسار هنا
+import WalkingAnalysis from '../components/dashboard/WalkingAnalysis';
+import GoogleFitSync from '../components/fitness/GoogleFitSync';
+import UserManager from '../components/admin/UserManager';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { isLocalPreview, localPreviewDailyLogs } from '../lib/localPreview';
 
 export default function Dashboard({ profile }) {
   const { t, lang } = useLanguage();
@@ -41,6 +42,7 @@ export default function Dashboard({ profile }) {
   const { data: dailyLogs = [], refetch: refetchLogs } = useQuery({
     queryKey: ['dailyLogs', profile?.user_email],
     queryFn: async () => {
+      if (isLocalPreview) return localPreviewDailyLogs;
       const cacheKey = `dailyLogs_${profile?.user_email}`;
       if (!navigator.onLine) {
         const cached = await getCachedData(cacheKey);
@@ -66,7 +68,6 @@ export default function Dashboard({ profile }) {
       return offlineSave('DailyLog', 'create', null, { user_email: profile.user_email, date: today, ...data });
     },
     onMutate: async (newData) => {
-      // Optimistic update for instant UI response (works offline too)
       await queryClient.cancelQueries({ queryKey: ['dailyLogs'] });
       const prev = queryClient.getQueryData(['dailyLogs', profile?.user_email]);
       queryClient.setQueryData(['dailyLogs', profile?.user_email], (old = []) => {
@@ -76,7 +77,7 @@ export default function Dashboard({ profile }) {
           updated[idx] = { ...updated[idx], ...newData };
           return updated;
         }
-        return [...old, { user_email: profile.user_email, date: today, ...newData }];
+        return [...old, { id: `local_${Date.now()}`, user_email: profile.user_email, date: today, ...newData }];
       });
       return { prev };
     },
@@ -93,12 +94,18 @@ export default function Dashboard({ profile }) {
     return { steps: log?.steps || 0 };
   });
 
-  // Use live steps from walking context if a session is active, otherwise use today's log
   const displaySteps = isWalking ? liveSteps : (todayLog?.steps || 0);
   const stepProgress = Math.min((displaySteps / (profile?.daily_step_goal || 5000)) * 100, 100);
   const levelInfo = getLevelInfo(profile?.level || 1);
 
   const generateAIMessage = async () => {
+    if (isLocalPreview) {
+      setAiMessage(lang === 'ar'
+        ? 'معاينة محلية جاهزة. بياناتك التجريبية تعمل الآن، ويمكنك التنقل بين الصفحات وتجربة الواجهة قبل النشر.'
+        : 'Local preview is ready. Demo health data is loaded, so you can explore the app before publishing.');
+      setAiLoading(false);
+      return;
+    }
     if (!isOnline) {
       const cached = await getCachedData(`ai_coach_${profile?.user_email}`);
       if (cached) { setAiMessage(cached); }
@@ -131,12 +138,10 @@ export default function Dashboard({ profile }) {
     setSpeaking(true);
   };
 
-  // Auto generate on mount
   useEffect(() => {
     if (profile && !aiMessage) generateAIMessage();
   }, [profile?.id, todayLog?.steps]);
 
-  // XP popup simulation
   useEffect(() => {
     if (todayLog?.steps > 0 && todayLog?.steps % 500 === 0) {
       setXpPopup('+10 XP 🎉');
@@ -162,7 +167,6 @@ export default function Dashboard({ profile }) {
 
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Pull to refresh indicator */}
       {pullY > 10 && (
         <div className="fixed top-0 left-0 right-0 flex justify-center z-50 pointer-events-none"
           style={{ paddingTop: `calc(${pullY * 0.5}px + env(safe-area-inset-top))` }}>
@@ -172,7 +176,6 @@ export default function Dashboard({ profile }) {
           </div>
         </div>
       )}
-      {/* XP Popup */}
       <AnimatePresence>
         {xpPopup && (
           <motion.div
@@ -186,14 +189,11 @@ export default function Dashboard({ profile }) {
         )}
       </AnimatePresence>
 
-      {/* ===== HERO HEADER ===== */}
       <div className={`relative overflow-hidden bg-gradient-to-br from-primary/25 via-background to-accent/10 px-4 pt-14 pb-8`}>
-        {/* Decorative blobs */}
         <div className="absolute top-0 right-0 w-72 h-72 bg-primary/8 rounded-full -translate-y-36 translate-x-36 blur-3xl" />
         <div className="absolute bottom-0 left-0 w-52 h-52 bg-accent/8 rounded-full translate-y-28 -translate-x-28 blur-3xl" />
 
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          {/* Greeting + Level */}
           <div className="flex items-start justify-between mb-4">
             <div>
               <p className="text-xs text-muted-foreground mb-0.5">
@@ -212,16 +212,13 @@ export default function Dashboard({ profile }) {
             <LevelBadge level={profile?.level || 1} xp={profile?.xp || 0} />
           </div>
 
-          {/* Smart Notification */}
           <SmartNotificationBar todayLog={todayLog} profile={profile} />
         </motion.div>
       </div>
 
       <div className="px-4 space-y-4 pb-28 -mt-1">
-        {/* ===== TRIAL BANNER ===== */}
         <TrialBanner />
 
-        {/* ===== LIVE HR INDICATOR (when watch connected) ===== */}
         {hrConnected && liveHeartRate && (
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3">
@@ -239,10 +236,8 @@ export default function Dashboard({ profile }) {
           </motion.div>
         )}
 
-        {/* ===== SURPRISE CARD ===== */}
         <SurpriseCard />
 
-        {/* ===== MAIN STATS RING ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className={`bg-gradient-to-br ${levelInfo.color} p-0.5 rounded-3xl shadow-xl`}>
           <div className="bg-card rounded-3xl p-5">
@@ -297,7 +292,6 @@ export default function Dashboard({ profile }) {
           </div>
         </motion.div>
 
-        {/* ===== AI COACH (SPEAKS) ===== */}
         <PremiumGate feature="ai_coach">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           className="relative bg-gradient-to-br from-primary/20 via-card to-accent/10 rounded-3xl p-5 border border-primary/20 overflow-hidden">
@@ -360,20 +354,16 @@ export default function Dashboard({ profile }) {
         </motion.div>
         </PremiumGate>
 
-        {/* ===== MICRO GOALS ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}>
           <MicroGoals todayLog={todayLog} profile={profile} />
         </motion.div>
 
-        {/* ===== STORY PROGRESS ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <StoryProgress logs={dailyLogs} />
         </motion.div>
 
-        {/* ===== WATER & SLEEP ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
           className="grid grid-cols-2 gap-3">
-          {/* Water */}
           <div className="bg-card rounded-3xl p-4 border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-card">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center">
@@ -398,7 +388,6 @@ export default function Dashboard({ profile }) {
             </div>
           </div>
 
-          {/* Sleep */}
           <div className="bg-card rounded-3xl p-4 border border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 to-card">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-xl bg-indigo-500/20 flex items-center justify-center">
@@ -420,49 +409,40 @@ export default function Dashboard({ profile }) {
           </div>
         </motion.div>
 
-        {/* ===== MOOD ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}>
           <MoodSelector selected={todayLog?.mood} onSelect={(mood) => updateLogMutation.mutate({ mood })} />
         </motion.div>
 
-        {/* ===== COMMUNITY ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}>
           <CommunityWidget profile={profile} />
         </motion.div>
 
-        {/* ===== HEALTH PREDICTION ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
           <HealthPredictionCard profile={profile} todayLog={todayLog} logs={dailyLogs} />
         </motion.div>
 
-        {/* ===== DIGITAL TWIN ===== */}
         <PremiumGate feature="digital_twin">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.29 }}>
           <DigitalTwin logs={dailyLogs} profile={profile} />
         </motion.div>
         </PremiumGate>
 
-        {/* ===== WEEKLY CHART ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <WeeklyChart data={weeklyData} />
         </motion.div>
 
-        {/* ===== GOOGLE FIT SYNC ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.30 }}>
           <GoogleFitSync profile={profile} todayLog={todayLog} />
         </motion.div>
 
-        {/* ===== WALKING ANALYSIS (independent from walk sessions) ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.31 }}>
           <WalkingAnalysis profile={profile} dailyLogs={dailyLogs} />
         </motion.div>
 
-        {/* ===== OWNER PANEL ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.33 }}>
           <UserManager />
         </motion.div>
 
-        {/* ===== QUICK LINKS ===== */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}
           className="grid grid-cols-2 gap-3">
           {[

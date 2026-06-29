@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useOnlineStatus, syncPendingMutations } from '@/lib/useOfflineSync';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useOnlineStatus, syncPendingMutations } from '../../lib/useOfflineSync'; // تعديل المسار هنا
+import { useLanguage } from '../../lib/LanguageContext'; // تعديل المسار هنا
 import { WifiOff, Wifi, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

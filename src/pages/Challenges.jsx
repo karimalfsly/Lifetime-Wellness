@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '../api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Trophy, Loader2, Flame, Footprints, Droplets, Dumbbell, Star, Zap, Crown, Shield, Swords } from 'lucide-react';
+import { useLanguage } from '../lib/LanguageContext';
+import { Button } from '../components/ui/button';
+import { Trophy, Loader2, Flame, Footprints, Droplets, Dumbbell, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import LevelBadge, { getLevelInfo } from '@/components/dashboard/LevelBadge';
+import LevelBadge, { getLevelInfo } from '../components/dashboard/LevelBadge';
 
 const typeIcons = { steps: Footprints, exercise: Dumbbell, water: Droplets, streak: Flame, custom: Trophy };
 const typeColors = {
@@ -37,10 +36,10 @@ export default function Challenges({ profile }) {
     queryFn: async () => {
       const cacheKey = `challenges_${profile?.user_email}`;
       if (!navigator.onLine) {
-        const { getCachedData } = await import('@/lib/offlineStorage');
+        const { getCachedData } = await import('../lib/offlineStorage');
         return (await getCachedData(cacheKey)) || [];
       }
-      const { cacheData } = await import('@/lib/offlineStorage');
+      const { cacheData } = await import('../lib/offlineStorage');
       const data = await base44.entities.Challenge.filter({ user_email: profile?.user_email }, '-created_date');
       await cacheData(cacheKey, data);
       return data;
@@ -73,7 +72,14 @@ export default function Challenges({ profile }) {
           challenges: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, title_ar: { type: 'string' }, description: { type: 'string' }, description_ar: { type: 'string' }, type: { type: 'string' }, target_value: { type: 'number' }, reward_xp: { type: 'number' }, days: { type: 'number' }, badge_icon: { type: 'string' } } } },
         }
       }
-    });
+    }).catch(() => ({
+      challenges: [
+        { title: 'Step Starter', title_ar: 'انطلاق الخطوات', description: 'Walk 3,000 steps today.', description_ar: 'امشِ 3000 خطوة اليوم.', type: 'steps', target_value: 3000, reward_xp: 40, days: 1, badge_icon: '👟' },
+        { title: 'Hydration Hero', title_ar: 'بطل الترطيب', description: 'Drink 6 glasses of water.', description_ar: 'اشرب 6 أكواب ماء.', type: 'water', target_value: 6, reward_xp: 30, days: 1, badge_icon: '💧' },
+        { title: 'Active 25', title_ar: 'نشاط 25', description: 'Complete 25 active minutes.', description_ar: 'أكمل 25 دقيقة نشاط.', type: 'exercise', target_value: 25, reward_xp: 50, days: 2, badge_icon: '🔥' },
+        { title: '3-Day Streak', title_ar: 'سلسلة 3 أيام', description: 'Stay active 3 days in a row.', description_ar: 'كن نشطاً 3 أيام متتالية.', type: 'streak', target_value: 3, reward_xp: 80, days: 3, badge_icon: '🏆' },
+      ],
+    }));
 
     const today = new Date();
     for (const ch of (res.challenges || [])) {

@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Footprints, ClipboardList, User, Sparkles, Trophy } from 'lucide-react';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext';
 import { motion } from 'framer-motion';
 
 const TAB_ROOTS = ['/', '/walking', '/plans', '/leaderboard', '/assistant', '/profile'];

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
-import { CheckCircle2, Circle, Footprints, Droplets, Flame, Moon } from 'lucide-react';
+import React from 'react';
+import { useLanguage } from '../../lib/LanguageContext';
+import { CheckCircle2, Footprints, Droplets, Flame, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function getMicroGoals(todayLog, profile, lang) {

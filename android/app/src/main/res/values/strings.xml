@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Lifetime</string>
+    <string name="title_activity_main">Lifetime</string>
+    <string name="package_name">com.karim.wellness</string>
+    <string name="custom_url_scheme">com.karim.wellness</string>
+</resources>

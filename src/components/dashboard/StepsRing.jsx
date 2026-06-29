@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext';
 
 export default function StepsRing({ steps, goal }) {
   const { t } = useLanguage();

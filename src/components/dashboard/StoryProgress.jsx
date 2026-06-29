@@ -1,7 +1,6 @@
 import React from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext';
 import { TrendingUp, TrendingDown, Minus, Award } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 export default function StoryProgress({ logs }) {
   const { lang } = useLanguage();

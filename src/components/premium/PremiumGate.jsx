@@ -2,11 +2,11 @@
  * PremiumGate — wraps a feature. Shows paywall if not accessible.
  */
 import React, { useState } from 'react';
-import { usePremium } from '@/lib/PremiumContext';
-import { useLanguage } from '@/lib/LanguageContext';
+import { usePremium } from '../../lib/PremiumContext';
+import { useLanguage } from '../../lib/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Sparkles, X, Zap, Crown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Lock, X, Zap, Crown } from 'lucide-react';
+import { Button } from '../ui/button';
 import { Link } from 'react-router-dom';
 
 export default function PremiumGate({ feature, children, fallback }) {

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '../api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Trophy, Crown, Medal, Camera, Loader2, ImagePlus } from 'lucide-react';
+import { useLanguage } from '../lib/LanguageContext';
+import { Trophy, Crown, Medal, Loader2, ImagePlus } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getLevelInfo } from '@/components/dashboard/LevelBadge';
+import { getLevelInfo } from '../components/dashboard/LevelBadge';
 
-const ADMIN_EMAIL = 'njdj9985@gmail.com';
+const ADMIN_EMAIL = 'karimalfasly@gmail.com';
 
 export default function Leaderboard({ currentUser }) {
   const { lang } = useLanguage();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext';
 
 const LEVELS = [
   { min: 1, max: 4, titleEn: 'Beginner', titleAr: 'مبتدئ', emoji: '🌱', color: 'from-green-600 to-green-400', glow: 'shadow-green-500/40' },

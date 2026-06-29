@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Activity, Heart, Target, ChevronLeft, ChevronRight, Globe } from 'lucide-react';
+import { useLanguage } from '../lib/LanguageContext';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Activity, Heart, Target, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const steps = ['welcome', 'personal', 'goals', 'activity'];
 
@@ -41,12 +41,14 @@ export default function Onboarding({ user, onComplete }) {
             <p className="text-muted-foreground">{t('onboardingDesc')}</p>
             <div className="flex items-center gap-2 bg-muted rounded-xl p-1">
               <button
+                type="button"
                 onClick={() => { setLang('en'); update('language', 'en'); }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${lang === 'en' ? 'bg-primary text-primary-foreground' : ''}`}
               >
                 English
               </button>
               <button
+                type="button"
                 onClick={() => { setLang('ar'); update('language', 'ar'); }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${lang === 'ar' ? 'bg-primary text-primary-foreground' : ''}`}
               >
@@ -80,7 +82,9 @@ export default function Onboarding({ user, onComplete }) {
               <div>
                 <Label>{t('gender')}</Label>
                 <Select value={data.gender} onValueChange={v => update('gender', v)}>
-                  <SelectTrigger className="bg-muted"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="bg-muted">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="male">{t('male')}</SelectItem>
                     <SelectItem value="female">{t('female')}</SelectItem>
@@ -100,6 +104,7 @@ export default function Onboarding({ user, onComplete }) {
             <div className="grid grid-cols-2 gap-3">
               {['lose_weight', 'build_muscle', 'improve_fitness', 'maintain_health'].map(g => (
                 <button
+                  type="button"
                   key={g}
                   onClick={() => update('goal', g)}
                   className={`p-4 rounded-xl border text-sm font-medium transition-all ${
@@ -127,6 +132,7 @@ export default function Onboarding({ user, onComplete }) {
             <div className="space-y-2">
               {['sedentary', 'light', 'moderate', 'active', 'very_active'].map(a => (
                 <button
+                  type="button"
                   key={a}
                   onClick={() => update('activity_level', a)}
                   className={`w-full p-3 rounded-xl border text-sm font-medium transition-all text-start ${

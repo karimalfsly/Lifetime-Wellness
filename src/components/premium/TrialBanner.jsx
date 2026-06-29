@@ -2,8 +2,8 @@
  * TrialBanner — shows a non-intrusive daily reminder during free trial.
  */
 import React, { useState } from 'react';
-import { usePremium } from '@/lib/PremiumContext';
-import { useLanguage } from '@/lib/LanguageContext';
+import { usePremium } from '../../lib/PremiumContext';
+import { useLanguage } from '../../lib/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';

@@ -19,7 +19,7 @@ export const PREMIUM_FEATURES = {
 };
 
 // Owner email always gets free premium
-const OWNER_EMAIL = 'njdj9985@gmail.com';
+const OWNER_EMAIL = 'karimalfasly@gmail.com';
 
 export function PremiumProvider({ profile, children }) {
   const status = useMemo(() => {

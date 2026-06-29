@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '../api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useLanguage } from '../lib/LanguageContext';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import { Link } from 'react-router-dom';
-import { Camera, History, Trophy, Watch, Globe, LogOut, Pencil, Save, X, Star, Zap, MessageCircle, ImagePlus, Loader2, Trash2, AlertTriangle, Crown, Fingerprint } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { usePremium } from '@/lib/PremiumContext';
+import { Camera, History, Trophy, Watch, Globe, LogOut, Pencil, Save, X, Star, Zap, MessageCircle, ImagePlus, Loader2, Trash2, AlertTriangle, Fingerprint } from 'lucide-react';
+import { Switch } from '../components/ui/switch';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Profile({ profile, user }) {
@@ -311,7 +310,7 @@ export default function Profile({ profile, user }) {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-3xl p-6 border-t border-border shadow-2xl"
-              style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
+              style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-top))' }}>
               <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-5" />
               <div className="flex flex-col items-center text-center gap-3 mb-6">
                 <div className="w-14 h-14 rounded-3xl bg-destructive/15 flex items-center justify-center">

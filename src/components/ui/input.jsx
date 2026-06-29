@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "../../lib/utils" // تم تعديل المسار النسبي هنا بدلاً من @
 
 const Input = React.forwardRef(({ className, type, ...props }, ref) => {
   return (

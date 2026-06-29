@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
-import { usePremium } from '@/lib/PremiumContext';
+import { useLanguage } from '../lib/LanguageContext';
+import { usePremium } from '../lib/PremiumContext';
+import { base44 } from '../api/base44Client'; // استيراد العميل لإتمام الدفع
 import { motion } from 'framer-motion';
-import { Crown, Check, Zap, Brain, Calendar, UtensilsCrossed, Trophy, Sparkles, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Crown, Check, Brain, Calendar, UtensilsCrossed, Trophy, Sparkles, Star } from 'lucide-react';
+import { Button } from '../components/ui/button';
 
 const features = [
   { icon: Brain, en: 'AI Coach & Smart Analysis', ar: 'مدرب ذكي وتحليل احترافي', color: 'text-purple-400', bg: 'bg-purple-400/10' },
@@ -18,6 +19,23 @@ export default function Premium() {
   const { lang } = useLanguage();
   const { isTrial, trialDaysLeft, isPremium } = usePremium();
   const [selected, setSelected] = useState('yearly');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // دالة التعامل مع الدفع وتفعيله عبر بوابة الربط لـ base44
+  const handleSubscribe = async () => {
+    try {
+      setIsLoading(true);
+      // استدعاء نظام الدفع وتمرير رابط العودة بعد نجاح الدفع
+      await base44.payments.checkout({
+        plan: selected, // 'yearly' أو 'monthly'
+        successUrl: window.location.origin + '/premium?success=true',
+        cancelUrl: window.location.href
+      });
+    } catch (error) {
+      console.error('Payment checkout failed:', error);
+      setIsLoading(false);
+    }
+  };
 
   if (isPremium) {
     return (
@@ -82,7 +100,7 @@ export default function Premium() {
             { key: 'monthly', labelEn: 'Monthly', labelAr: 'شهري', price: '$4.99', sub: lang === 'ar' ? '/شهر' : '/month' },
             { key: 'yearly', labelEn: 'Yearly 🔥', labelAr: 'سنوي 🔥', price: '$29', sub: lang === 'ar' ? '/سنة — وفّر 51%' : '/year — Save 51%' },
           ].map(plan => (
-            <button key={plan.key} onClick={() => setSelected(plan.key)}
+            <button type="button" key={plan.key} onClick={() => setSelected(plan.key)}
               className={`flex-1 rounded-xl py-3 text-center transition-all ${selected === plan.key ? 'bg-card shadow-sm' : ''}`}>
               <p className="text-[10px] font-semibold text-muted-foreground">{lang === 'ar' ? plan.labelAr : plan.labelEn}</p>
               <p className={`text-xl font-black ${selected === plan.key ? 'text-primary' : ''}`}>{plan.price}</p>
@@ -92,9 +110,13 @@ export default function Premium() {
         </div>
 
         {/* CTA */}
-        <Button className="w-full h-14 bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-black text-base rounded-2xl shadow-xl shadow-yellow-400/30">
+        <Button 
+          onClick={handleSubscribe}
+          disabled={isLoading}
+          className="w-full h-14 bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-black text-base rounded-2xl shadow-xl shadow-yellow-400/30"
+        >
           <Crown className="w-5 h-5 mr-2" />
-          {lang === 'ar' ? '👑 اشترك الآن' : '👑 Subscribe Now'}
+          {isLoading ? (lang === 'ar' ? 'جاري التحميل...' : 'Loading...') : (lang === 'ar' ? '👑 اشترك الآن' : '👑 Subscribe Now')}
         </Button>
 
         {/* Motivation nudge */}

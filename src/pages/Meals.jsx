@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Button } from '@/components/ui/button';
-import { UtensilsCrossed, Loader2, ChevronDown, ChevronUp, Sparkles, Flame, Dumbbell, Wheat, Droplets, WifiOff } from 'lucide-react';
-import { useOnlineStatus } from '@/lib/useOfflineSync';
+import { base44 } from '../api/base44Client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '../lib/LanguageContext';
+import { Button } from '../components/ui/button';
+import { Loader2, ChevronDown, ChevronUp, Sparkles, Flame, Dumbbell, Droplets, WifiOff } from 'lucide-react';
+import { useOnlineStatus } from '../lib/useOfflineSync';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const mealIcons = { breakfast: '🍳', lunch: '🍗', dinner: '🥗', snack: '🍎' };
@@ -35,10 +35,10 @@ export default function Meals({ profile }) {
     queryFn: async () => {
       const cacheKey = `meals_${profile?.user_email}_${today}`;
       if (!navigator.onLine) {
-        const { getCachedData } = await import('@/lib/offlineStorage');
+        const { getCachedData } = await import('../lib/offlineStorage');
         return (await getCachedData(cacheKey)) || [];
       }
-      const { cacheData } = await import('@/lib/offlineStorage');
+      const { cacheData } = await import('../lib/offlineStorage');
       const data = await base44.entities.MealPlan.filter({ user_email: profile?.user_email, date: today });
       await cacheData(cacheKey, data);
       return data;

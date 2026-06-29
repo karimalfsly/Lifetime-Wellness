@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { base44 } from './api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageNotFound from './lib/PageNotFound';
 
@@ -20,33 +20,44 @@ import AppLayout from './components/layout/AppLayout';
 import { WalkingProvider } from './lib/WalkingContext';
 import { PremiumProvider } from './lib/PremiumContext';
 import BiometricAuth from './components/BiometricAuth';
+import { useAuth } from './lib/AuthContext';
+import { isLocalPreview, localPreviewProfile, localPreviewUser } from './lib/localPreview';
 
 export default function AppShell() {
   const queryClient = useQueryClient();
-  const [user, setUser] = useState(null);
+  const { user: authUser } = useAuth();
+  const [user, setUser] = useState(isLocalPreview ? localPreviewUser : null);
   const [isBiometricAuthenticated, setIsBiometricAuthenticated] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(() => {
     return localStorage.getItem('biometric_enabled') === 'true';
   });
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+    if (isLocalPreview) {
+      setUser(localPreviewUser);
+      return;
+    }
+    if (authUser) {
+      setUser(authUser);
+      return;
+    }
+    base44.auth.me().then(setUser).catch(() => setUser(null));
+  }, [authUser]);
 
   const { data: profiles = [], isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.email],
     queryFn: () => base44.entities.UserProfile.filter({ user_email: user?.email }),
-    enabled: !!user?.email,
+    enabled: !!user?.email && !isLocalPreview,
   });
 
-  const profile = profiles[0];
+  const profile = isLocalPreview ? localPreviewProfile : profiles[0];
 
   const createProfileMutation = useMutation({
     mutationFn: (data) => base44.entities.UserProfile.create(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['profile'] }),
   });
 
-  if (!user || profileLoading) {
+  if (!user || (!isLocalPreview && profileLoading)) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />

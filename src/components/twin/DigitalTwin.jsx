@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Brain, TrendingUp, TrendingDown, Zap, RefreshCw, ChevronRight, Activity, Dumbbell, Footprints } from 'lucide-react';
+import { base44 } from '../../api/base44Client'; // تم تعديل المسار النسبي هنا بدلاً من @
+import { useLanguage } from '../../lib/LanguageContext'; // تم تعديل المسار النسبي هنا بدلاً من @
+import { Brain, TrendingUp, TrendingDown, Zap, ChevronRight, Activity, Dumbbell, Footprints } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function calcFuture(logs, profile) {

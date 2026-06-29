@@ -5,8 +5,9 @@
  * 3. Provides an offline-aware mutation wrapper
  */
 import { useState, useEffect, useCallback } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '../api/base44Client';
 import { queueMutation, getPendingMutations, deleteMutation } from './offlineStorage';
+import { isLocalPreview } from './localPreview';
 
 export function useOnlineStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -47,6 +48,10 @@ export async function syncPendingMutations() {
 
 // Offline-aware save: tries online first, queues if offline
 export async function offlineSave(entityName, operation, id, data) {
+  if (isLocalPreview) {
+    return { id: id || `local_${Date.now()}`, ...data, _localPreview: true };
+  }
+
   if (navigator.onLine) {
     const entity = base44.entities[entityName];
     if (operation === 'create') return entity.create(data);

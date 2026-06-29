@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gift, X, Sparkles, Zap, Star } from 'lucide-react';
+import { X, Sparkles } from 'lucide-react';
 
 const SURPRISES_AR = [
   { emoji: '🎁', title: 'مفاجأة اليوم!', msg: 'لقد فتحنا لك خطة تدريب مجانية اليوم. استمر في مسيرتك! 🚀', color: 'from-purple-600/30 to-pink-600/20', border: 'border-purple-500/30' },

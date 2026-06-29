@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext'; // تم تصحيح المسار بالخروج خطوتين للأعلى
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Droplets, Dumbbell, Target, Bell } from 'lucide-react';
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useLanguage } from '@/lib/LanguageContext';
+import { base44 } from '../../api/base44Client';
+import { useLanguage } from '../../lib/LanguageContext';
 import { Brain, RefreshCw, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { motion } from 'framer-motion';
 

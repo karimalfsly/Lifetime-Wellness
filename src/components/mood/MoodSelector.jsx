@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext';
 
 const moods = [
   { key: 'great', emoji: '😄', color: 'bg-green-500/20 border-green-500/40' },

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Fingerprint, Lock, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Button } from '@/components/ui/button';
+import { useLanguage } from '../lib/LanguageContext';
+import { Button } from './ui/button';
 
 export default function BiometricAuth({ onAuthenticated }) {
   const { t, lang } = useLanguage();

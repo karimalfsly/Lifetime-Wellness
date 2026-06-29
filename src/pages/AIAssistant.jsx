@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Send, Bot, User, Loader2, Trash2, Mic, MicOff, Volume2, StopCircle, Radio, WifiOff } from 'lucide-react';
-import { useOnlineStatus } from '@/lib/useOfflineSync';
-import { getCachedData, cacheData } from '@/lib/offlineStorage';
+import { base44 } from '../api/base44Client';
+import { useLanguage } from '../lib/LanguageContext';
+import { Send, Bot, User, Loader2, Trash2, Mic, MicOff, Volume2, StopCircle, Radio } from 'lucide-react';
+import { useOnlineStatus } from '../lib/useOfflineSync';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const QUICK_QUESTIONS_AR = [
   'ما أفضل تمارين لخسارة الوزن؟',
-  'كيف أحسن نومي؟',
+  'كيف أحسن نومي？',
   'ما الأكل الصحي لليوم؟',
   'كيف أزيد خطواتي اليومية؟',
 ];
@@ -111,19 +110,27 @@ export default function AIAssistant({ profile }) {
     setSpeakingIdx(null);
   };
 
+  const offlineFallback = useCallback((q) => {
+    const isAr = lang === 'ar';
+    const responses = isAr ? [
+      'مرحباً! لتحسين لياقتك، تأكد من ممارسة 30 دقيقة تمارين يومياً وشرب 2 لتر ماء. الاستمرارية هي السر الحقيقي! 💪',
+      'لخسارة الوزن، امشِ 10،000 خطوة يومياً، قلّل السكريات، ونم 7-8 ساعات. التغييرات الصغيرة تصنع نتائج كبيرة! 🔥',
+      'لتحسين النوم، تجنّب الشاشات قبل 30 دقيقة من النوم، حافظ على جدول منتظم، واجعل غرفتك باردة. النوم الجيد يحسن كل شيء! 😴',
+      'الأكل الصحي: تناول البروتين مع كل وجبة، أكثر من الخضار والفواكه، وقلّل الوجبات المصنّعة. جسمك يستحق الأفضل! 🥗',
+    ] : [
+      'To improve fitness, aim for 30 minutes of exercise daily and drink 2 liters of water. Consistency is the real secret! 💪',
+      'For weight loss: walk 10,000 steps daily, cut sugars, and sleep 7-8 hours. Small changes make big results! 🔥',
+      'To improve sleep, avoid screens 30 min before bed, keep a regular schedule, and cool your room. Good sleep improves everything! 😴',
+      'Healthy eating: include protein with every meal, more vegetables and fruits, and reduce processed food. Your body deserves the best! 🥗',
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  }, [lang]);
+
   // --- SEND MESSAGE ---
   const send = useCallback(async (text) => {
     const q = (text || input).trim();
     if (!q || loading) return;
     setInput('');
-
-    if (!isOnline) {
-      setMessages(prev => [...prev,
-        { role: 'user', text: q },
-        { role: 'assistant', text: lang === 'ar' ? '📴 أنت غير متصل بالإنترنت. المساعد الذكي يتطلب اتصال. جرب مجدداً عند الاتصال!' : '📴 You\'re offline. The AI assistant requires internet. Try again when connected!' }
-      ]);
-      return;
-    }
 
     setLoading(true);
     setMessages(prev => [...prev, { role: 'user', text: q }]);
@@ -132,7 +139,13 @@ export default function AIAssistant({ profile }) {
       ? `أنت مساعد صحي ذكي محادثاتي. المستخدم: عمره ${profile?.age} سنة، وزنه ${profile?.weight_kg} كيلو، طوله ${profile?.height_cm} سم، هدفه ${profile?.goal}. السؤال: "${q}". أجب بالعربية بشكل مباشر وعملي ومحفز، 2-4 جمل فقط. استخدم إيموجي.`
       : `You are a conversational AI health coach. User: ${profile?.age}y, ${profile?.weight_kg}kg, ${profile?.height_cm}cm, goal: ${profile?.goal}. Question: "${q}". Answer directly in 2-4 sentences. Use emojis.`;
 
-    const res = await base44.integrations.Core.InvokeLLM({ prompt: context });
+    let res;
+    try {
+      res = await base44.integrations.Core.InvokeLLM({ prompt: context });
+      if (!res || typeof res !== 'string' || res.trim().length < 5) throw new Error('empty');
+    } catch {
+      res = offlineFallback(q);
+    }
 
     setMessages(prev => {
       const newMsgs = [...prev, { role: 'assistant', text: res }];
@@ -149,7 +162,7 @@ export default function AIAssistant({ profile }) {
     });
 
     setLoading(false);
-  }, [input, loading, lang, profile, speakText]);
+  }, [input, loading, lang, profile, speakText, offlineFallback]);
 
   // --- LISTEN (internal, for live mode loop) ---
   const startListeningInternal = useCallback((autoSend = false) => {

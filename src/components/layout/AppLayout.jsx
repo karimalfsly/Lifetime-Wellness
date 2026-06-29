@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import BottomNav from './BottomNav';
-import { useLanguage } from '@/lib/LanguageContext';
-import NotificationBell from '@/components/notifications/NotificationBell';
-import HealthReminders from '@/components/notifications/HealthReminders';
+import { useLanguage } from '../../lib/LanguageContext';
+import NotificationBell from '../notifications/NotificationBell';
+import HealthReminders from '../notifications/HealthReminders';
 import OfflineBanner from './OfflineBanner';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '../../api/base44Client';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useAuth } from '../../lib/AuthContext';
+import { isLocalPreview, localPreviewUser } from '../../lib/localPreview';
 
 function BackHeader({ isRTL }) {
   const location = useLocation();
@@ -29,11 +31,20 @@ function BackHeader({ isRTL }) {
 
 export default function AppLayout() {
   const { isRTL } = useLanguage();
-  const [user, setUser] = useState(null);
+  const { user: authUser } = useAuth();
+  const [user, setUser] = useState(isLocalPreview ? localPreviewUser : null);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
+    if (isLocalPreview) {
+      setUser(localPreviewUser);
+      return;
+    }
+    if (authUser) {
+      setUser(authUser);
+      return;
+    }
+    base44.auth.me().then(setUser).catch(() => setUser(null));
+  }, [authUser]);
 
   return (
     <div className={`min-h-screen bg-background font-inter ${isRTL ? 'font-tajawal' : 'font-inter'}`}>

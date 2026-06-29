@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useLanguage } from '../../lib/LanguageContext'; // تم تعديل المسار النسبي هنا بدلاً من @
 import { Users, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 

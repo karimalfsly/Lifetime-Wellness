@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
-import { base44 } from '@/api/base44Client';
+import { useLanguage } from '../../lib/LanguageContext';
+import { base44 } from '../../api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import { Activity, RefreshCw, CheckCircle2, AlertCircle, Smartphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

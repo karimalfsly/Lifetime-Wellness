@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '../api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/lib/LanguageContext';
-import { Footprints, Heart, Flame, Clock, TrendingUp, Award, Calendar, Filter, RefreshCw } from 'lucide-react';
+import { useLanguage } from '../lib/LanguageContext';
+import { RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import usePullToRefresh from '@/hooks/usePullToRefresh';
+import usePullToRefresh from '../hooks/usePullToRefresh';
 
 const MOOD_EMOJI = { great: '😄', good: '🙂', okay: '😐', tired: '😴', bad: '😞' };
 
@@ -19,10 +19,10 @@ export default function History({ profile }) {
     queryFn: async () => {
       const cacheKey = `history_logs_${profile?.user_email}`;
       if (!navigator.onLine) {
-        const { getCachedData } = await import('@/lib/offlineStorage');
+        const { getCachedData } = await import('../lib/offlineStorage');
         return (await getCachedData(cacheKey)) || [];
       }
-      const { cacheData } = await import('@/lib/offlineStorage');
+      const { cacheData } = await import('../lib/offlineStorage');
       const data = await base44.entities.DailyLog.filter({ user_email: profile?.user_email }, '-date', 30);
       await cacheData(cacheKey, data);
       return data;

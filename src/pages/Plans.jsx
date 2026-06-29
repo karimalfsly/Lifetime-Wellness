@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44 } from '../api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLanguage } from '@/lib/LanguageContext';
-import PremiumGate from '@/components/premium/PremiumGate';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, CalendarDays, CalendarRange, TrendingUp, Lock, CheckCircle2, Circle, Bot, Loader2, RotateCcw, ChevronLeft, ChevronRight, Sparkles, Target, Clock, WifiOff } from 'lucide-react';
-import { useOnlineStatus } from '@/lib/useOfflineSync';
+import { useLanguage } from '../lib/LanguageContext';
+import PremiumGate from '../components/premium/PremiumGate';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Calendar, CalendarDays, CalendarRange, TrendingUp, Lock, CheckCircle2, Circle, Bot, Loader2, RotateCcw, ChevronLeft, ChevronRight, Sparkles, Clock } from 'lucide-react';
+import { useOnlineStatus } from '../lib/useOfflineSync';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const planTypes = [
@@ -29,10 +29,10 @@ export default function Plans({ profile }) {
     queryFn: async () => {
       const cacheKey = `plans_${profile?.user_email}`;
       if (!navigator.onLine) {
-        const { getCachedData } = await import('@/lib/offlineStorage');
+        const { getCachedData } = await import('../lib/offlineStorage');
         return (await getCachedData(cacheKey)) || [];
       }
-      const { cacheData } = await import('@/lib/offlineStorage');
+      const { cacheData } = await import('../lib/offlineStorage');
       const data = await base44.entities.HealthPlan.filter({ user_email: profile?.user_email }, '-created_date');
       await cacheData(cacheKey, data);
       return data;
@@ -46,24 +46,54 @@ export default function Plans({ profile }) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['plans'] }),
   });
 
+  const buildOfflinePlan = (daysToGenerate) => {
+    const exercises = [
+      { name: 'Brisk Walk', name_ar: 'مشي سريع', duration_min: 20, sets: 1, reps: 1, type: 'cardio' },
+      { name: 'Bodyweight Squats', name_ar: 'سكوات بوزن الجسم', duration_min: 8, sets: 3, reps: 12, type: 'strength' },
+      { name: 'Push-ups', name_ar: 'تمرين الضغط', duration_min: 8, sets: 3, reps: 10, type: 'strength' },
+      { name: 'Stretching', name_ar: 'تمدد وإطالة', duration_min: 10, sets: 1, reps: 1, type: 'mobility' },
+    ];
+    return {
+      days: Array.from({ length: daysToGenerate }, (_, i) => ({
+        day: i + 1,
+        exercises: [exercises[i % exercises.length], exercises[(i + 1) % exercises.length]],
+        step_goal: 5000 + Math.min(i, 10) * 300,
+        tips: 'Drink water before exercising and keep a comfortable pace.',
+        tips_ar: 'اشرب ماء قبل التمرين وحافظ على سرعة مريحة.',
+        motivation: 'Consistency beats perfection every time.',
+        motivation_ar: 'الاستمرارية تتفوق على الكمال في كل مرة.',
+      })),
+      ai_messages: Array.from({ length: daysToGenerate }, (_, i) => ({
+        day: i + 1,
+        message: `Day ${i + 1}: You are doing great, keep moving forward!`,
+        message_ar: `اليوم ${i + 1}: أنت تسير بشكل رائع، استمر في التقدم!`,
+      })),
+    };
+  };
+
   const generatePlan = async (type) => {
     setGenerating(type.key);
-    const daysToGenerate = Math.min(type.days, 30); // cap for AI
+    const daysToGenerate = Math.min(type.days, 30);
     const prompt = lang === 'ar'
       ? `أنشئ خطة صحية لـ ${daysToGenerate} يوم. المستخدم: ${profile?.age} سنة، ${profile?.weight_kg} كيلو، ${profile?.height_cm} سم، هدف: ${profile?.goal}، نشاط: ${profile?.activity_level}. لكل يوم: تمارين متنوعة وواقعية ونصائح محفزة. JSON: {"days": [{"day": 1, "exercises": [{"name": "Push-ups", "name_ar": "تمرين الضغط", "duration_min": 10, "sets": 3, "reps": 12, "type": "strength"}], "step_goal": 5000, "tips": "tip in English", "tips_ar": "نصيحة بالعربية", "motivation": "motivation EN", "motivation_ar": "تحفيز عربي"}], "ai_messages": [{"day": 1, "message": "Coach msg EN", "message_ar": "رسالة المدرب"}]}`
       : `Create a health plan for ${daysToGenerate} days. User: ${profile?.age}y, ${profile?.weight_kg}kg, ${profile?.height_cm}cm, goal: ${profile?.goal}, activity: ${profile?.activity_level}. Varied realistic exercises and motivational tips per day. JSON: {"days": [{"day": 1, "exercises": [{"name": "Push-ups", "name_ar": "تمرين الضغط", "duration_min": 10, "sets": 3, "reps": 12, "type": "strength"}], "step_goal": 5000, "tips": "tip", "tips_ar": "نصيحة", "motivation": "motivation", "motivation_ar": "تحفيز"}], "ai_messages": [{"day": 1, "message": "msg", "message_ar": "رسالة"}]}`;
 
-    const res = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      model: 'claude_sonnet_4_6',
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          days: { type: 'array', items: { type: 'object', properties: { day: { type: 'number' }, exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, name_ar: { type: 'string' }, duration_min: { type: 'number' }, sets: { type: 'number' }, reps: { type: 'number' }, type: { type: 'string' } } } }, step_goal: { type: 'number' }, tips: { type: 'string' }, tips_ar: { type: 'string' }, motivation: { type: 'string' }, motivation_ar: { type: 'string' } } } },
-          ai_messages: { type: 'array', items: { type: 'object', properties: { day: { type: 'number' }, message: { type: 'string' }, message_ar: { type: 'string' } } } },
+    let res;
+    try {
+      res = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            days: { type: 'array', items: { type: 'object', properties: { day: { type: 'number' }, exercises: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, name_ar: { type: 'string' }, duration_min: { type: 'number' }, sets: { type: 'number' }, reps: { type: 'number' }, type: { type: 'string' } } } }, step_goal: { type: 'number' }, tips: { type: 'string' }, tips_ar: { type: 'string' }, motivation: { type: 'string' }, motivation_ar: { type: 'string' } } } },
+            ai_messages: { type: 'array', items: { type: 'object', properties: { day: { type: 'number' }, message: { type: 'string' }, message_ar: { type: 'string' } } } },
+          }
         }
-      }
-    });
+      });
+      if (!res?.days?.length) throw new Error('empty');
+    } catch {
+      res = buildOfflinePlan(daysToGenerate);
+    }
 
     const daysContent = (res.days || []).map((d, i) => ({
       ...d,
@@ -171,11 +201,11 @@ export default function Plans({ profile }) {
                         <Badge className="bg-background/50 text-xs font-bold border-0">{lang === 'ar' ? '▶ متابعة' : '▶ Continue'}</Badge>
                       </div>
                     ) : (
-                      <Button size="sm" disabled={isGenerating || !isOnline}
+                      <Button size="sm" disabled={isGenerating}
                         className="w-full h-8 text-xs bg-background/30 hover:bg-background/50 text-foreground border-0 rounded-xl font-bold"
                         onClick={(e) => { e.stopPropagation(); generatePlan(type); }}>
                         {isGenerating ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />}
-                        {!isOnline ? (lang === 'ar' ? 'يتطلب إنترنت' : 'Needs internet') : isGenerating ? (lang === 'ar' ? 'جارٍ الإنشاء...' : 'Creating...') : (lang === 'ar' ? 'إنشاء' : 'Create')}
+                        {isGenerating ? (lang === 'ar' ? 'جارى الإنشاء...' : 'Creating...') : (lang === 'ar' ? 'إنشاء' : 'Create')}
                       </Button>
                     )}
                     {completed > 0 && <p className="text-[9px] text-muted-foreground mt-1">✅ {completed} {lang === 'ar' ? 'مكتملة' : 'completed'}</p>}

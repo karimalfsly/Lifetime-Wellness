@@ -1,7 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
-import { appParams } from '@/lib/app-params';
+import { base44 } from '../api/base44Client';
+import { appParams } from './app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
+import { isLocalPreview, localPreviewUser } from './localPreview';
 
 const AuthContext = createContext();
 
@@ -22,6 +23,16 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoadingPublicSettings(true);
       setAuthError(null);
+
+      if (isLocalPreview) {
+        setUser(localPreviewUser);
+        setIsAuthenticated(true);
+        setAuthChecked(true);
+        setAppPublicSettings({ id: 'local-preview', public_settings: {} });
+        setIsLoadingAuth(false);
+        setIsLoadingPublicSettings(false);
+        return;
+      }
       
       // First, check app public settings (with token if available)
       // This will tell us if auth is required, user not registered, etc.
@@ -128,6 +139,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
+    if (isLocalPreview) return;
     // Use the SDK's redirectToLogin method
     base44.auth.redirectToLogin(window.location.href);
   };

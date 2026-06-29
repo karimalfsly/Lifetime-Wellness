@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useLanguage } from '@/lib/LanguageContext';
-import { useWalking } from '@/lib/WalkingContext';
-import { Button } from '@/components/ui/button';
+import { useLanguage } from '../lib/LanguageContext';
+import { useWalking } from '../lib/WalkingContext';
+import { Button } from '../components/ui/button';
 import { Bluetooth, Heart, Watch, Loader2, RefreshCw, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -35,16 +35,29 @@ export default function BluetoothPage() {
   const scanAllDevices = async () => {
     setScanError('');
     setScanning(true);
-    setNearbyDevices([]);
     try {
+      // إرسال طلب للمتصفح لفتح نافذة النظام وعرض كافة الأجهزة والساعات القريبة دون تصفية مسبقة
       const device = await navigator.bluetooth.requestDevice({
         acceptAllDevices: true,
-        optionalServices: ['heart_rate', 'battery_service', 'device_information', 'generic_access'],
+        optionalServices: [
+          'heart_rate', 
+          'battery_service', 
+          'device_information', 
+          'generic_access',
+          'generic_attribute'
+        ],
       });
-      const newDev = { name: device.name || (lang === 'ar' ? 'جهاز مجهول' : 'Unknown Device'), id: device.id };
+
+      const newDev = { 
+        name: device.name || (lang === 'ar' ? 'جهاز مجهول / ساعة ذكية' : 'Smartwatch / Unknown Device'), 
+        id: device.id 
+      };
+
       setNearbyDevices(prev => prev.find(d => d.id === newDev.id) ? prev : [...prev, newDev]);
     } catch (e) {
-      if (!e.message?.includes('cancelled')) setScanError(lang === 'ar' ? 'لم يتم العثور على أجهزة' : 'No device found');
+      if (!e.message?.includes('cancelled')) {
+        setScanError(lang === 'ar' ? 'لم يتم العثور على أجهزة أو تم إلغاء الفحص' : 'No device found or scan cancelled');
+      }
     }
     setScanning(false);
   };
@@ -167,7 +180,7 @@ export default function BluetoothPage() {
           <div className="flex items-center justify-between mb-3">
             <div>
               <h3 className="text-sm font-black">{lang === 'ar' ? '🔍 البحث عن أجهزة قريبة' : '🔍 Scan Nearby Devices'}</h3>
-              <p className="text-[10px] text-muted-foreground">{lang === 'ar' ? 'أي جهاز بلوتوث بجانبك' : 'Any Bluetooth device nearby'}</p>
+              <p className="text-[10px] text-muted-foreground">{lang === 'ar' ? 'أي ساعة أو جهاز بلوتوث قريب سيظهر في القائمة' : 'Any nearby smartwatch or Bluetooth device will show up'}</p>
             </div>
             <Button size="sm" variant="outline" onClick={scanAllDevices} disabled={scanning || !isSupported}
               className="rounded-2xl h-9 font-bold">
@@ -185,7 +198,7 @@ export default function BluetoothPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold">{d.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{lang === 'ar' ? 'في النطاق' : 'In range'}</p>
+                  <p className="text-[10px] text-muted-foreground">{lang === 'ar' ? 'جاهز للإقران' : 'Ready to pair'}</p>
                 </div>
                 <Zap className="w-3 h-3 text-green-400 ml-auto" />
               </motion.div>

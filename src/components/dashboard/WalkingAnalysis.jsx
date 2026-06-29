@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
-import { useLanguage } from '@/lib/LanguageContext';
+import { base44 } from '../../api/base44Client';
+import { useLanguage } from '../../lib/LanguageContext';
 import { TrendingUp, Footprints, Flame, Clock, Target, Loader2, BarChart2, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

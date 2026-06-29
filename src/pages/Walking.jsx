@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useWalking } from '@/lib/WalkingContext';
-import { useLanguage } from '@/lib/LanguageContext';
+import { useWalking } from '../lib/WalkingContext';
+import { useLanguage } from '../lib/LanguageContext';
 import { MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from 'react-leaflet';
-import { Button } from '@/components/ui/button';
-import { Footprints, Play, Square, Clock, Flame, Navigation, MapPin, Target, X } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Footprints, Play, Square, Clock, Flame, Navigation, MapPin, Target, X, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import L from 'leaflet';
 
@@ -39,6 +39,21 @@ export default function Walking({ profile }) {
 
   const [mode, setMode] = useState(null);
   const [pickingDest, setPickingDest] = useState(false);
+  const [destInput, setDestInput] = useState('');
+  const [destSearching, setDestSearching] = useState(false);
+
+  const searchDestination = async () => {
+    if (!destInput.trim()) return;
+    setDestSearching(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destInput)}&format=json&limit=1`);
+      const data = await res.json();
+      if (data[0]) {
+        setDestination({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+      }
+    } catch {}
+    setDestSearching(false);
+  };
 
   const destToCurrentDist = destination && currentPos ? haversineDistance(currentPos, destination) : null;
 
@@ -57,7 +72,7 @@ export default function Walking({ profile }) {
         <div className="text-center">
           <div className="text-5xl mb-3">🚶</div>
           <h1 className="text-2xl font-black">{lang === 'ar' ? 'ابدأ المشي' : 'Start Walking'}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{lang === 'ar' ? 'كيف تريد المشي اليوم؟' : 'How do you want to walk today?'}</p>
+          <p className="text-sm text-muted-foreground mt-1">{lang === 'ar' ? 'كيف تريد المشي اليوم？' : 'How do you want to walk today?'}</p>
         </div>
         <div className="w-full max-w-sm space-y-3">
           <motion.button whileTap={{ scale: 0.97 }}
@@ -107,11 +122,24 @@ export default function Walking({ profile }) {
           </button>
           <div className="flex-1">
             {!isTracking && mode === 'destination' && !destination && (
-              <div className="bg-card/90 backdrop-blur-xl rounded-2xl px-4 py-2.5 border border-border shadow-lg">
-                <p className="text-xs font-semibold flex items-center gap-1.5">
+              <div className="bg-card/90 backdrop-blur-xl rounded-2xl border border-border shadow-lg overflow-hidden">
+                <p className="text-xs font-semibold flex items-center gap-1.5 px-4 py-2.5">
                   <Target className="w-4 h-4 text-accent" />
-                  {lang === 'ar' ? 'اضغط على الخريطة لاختيار وجهتك' : 'Tap map to pick your destination'}
+                  {lang === 'ar' ? 'ابحث عن وجهتك أو اضغط على الخريطة' : 'Search or tap map to pick destination'}
                 </p>
+                <div className="flex gap-2 px-3 pb-3">
+                  <input
+                    value={destInput}
+                    onChange={e => setDestInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && searchDestination()}
+                    placeholder={lang === 'ar' ? '📍 اكتب اسم المكان...' : '📍 Type a place name...'}
+                    className="flex-1 bg-muted rounded-xl px-3 py-2 text-sm outline-none"
+                  />
+                  <button onClick={searchDestination} disabled={destSearching}
+                    className="bg-accent text-accent-foreground px-3 py-2 rounded-xl text-xs font-bold disabled:opacity-50">
+                    {destSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : (lang === 'ar' ? 'بحث' : 'Go')}
+                  </button>
+                </div>
               </div>
             )}
             {destination && !isTracking && (
